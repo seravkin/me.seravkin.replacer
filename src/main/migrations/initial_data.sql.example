@@ -1,0 +1,5 @@
+insert into authorized_user (chat_id) values (<yours chat id>);
+
+
+insert into text_to_replace (key_text, value_text, creator_id, creation_date, modifier_id, modification_date) values
+  ('test' , 'testOne', 1, current_timestamp, 1, current_timestamp)
