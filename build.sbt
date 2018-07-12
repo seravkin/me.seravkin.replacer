@@ -5,6 +5,7 @@ version := "0.2"
 scalaVersion := "2.12.6"
 
 resolvers += Resolver.sonatypeRepo("releases")
+resolvers += Resolver.bintrayRepo("seravkin", "maven")
 
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.7")
 addCompilerPlugin("com.thoughtworks.dsl" %% "compilerplugins-bangnotation" % "1.0.0-RC10")
@@ -29,6 +30,8 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-postgres"  % "0.5.3",
 
   "com.github.pureconfig" %% "pureconfig" % "0.9.1",
+
+  "default" %% "me-seravkin-tg-adapter" % "0.1",
 
   "org.scalactic" %% "scalactic" % "3.0.5",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test"

@@ -13,10 +13,13 @@ import com.thoughtworks.dsl.keywords.Monadic
 import com.thoughtworks.dsl.domains.cats._
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import doobie.util.transactor.Transactor
+import info.mukel.telegrambot4s.api.Polling
 import me.seravkin.replacer.ReplacerBot.{Nop, ReplacerBotState}
 import me.seravkin.replacer.config.ReplacerConfiguration
 import me.seravkin.replacer.persistance.doobie.{DoobieReplacerRepository, DoobieUserRepository}
 import me.seravkin.replacer.persistance.memory.{MVarChatStateRepository, MVarReplacerRepository}
+import me.seravkin.tg.adapter.TelegramBotAdapter
+import me.seravkin.tg.adapter.requests.RequestHandlerAdapter
 
 
 object Main extends IOApp {
@@ -79,7 +82,7 @@ object Main extends IOApp {
             chatStateRepository,
             new RequestHandlerAdapter[ReplacerIO](handler)))
         .mapK(interpreter)
-      )
+      ) with Polling
 
     !Monadic(adapter.runSafe())
 

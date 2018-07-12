@@ -5,7 +5,7 @@ import cats.effect.concurrent.MVar
 import cats._
 import cats.implicits._
 import info.mukel.telegrambot4s.methods.ApiRequest
-import me.seravkin.replacer.infrastructure.RequestHandlerF
+import me.seravkin.tg.adapter.requests.RequestHandlerF
 
 class MockRequestHandlerF[F[_]: Concurrent](mVar: MVar[F, List[ApiRequest[_]]]) extends RequestHandlerF[F] {
   override def tell[R: Manifest](apiRequest: ApiRequest[R]): F[Unit] =

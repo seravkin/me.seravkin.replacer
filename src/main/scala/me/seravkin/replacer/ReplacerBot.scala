@@ -10,6 +10,9 @@ import me.seravkin.replacer.ReplacerBot._
 import me.seravkin.replacer.domain.AuthorizedUser
 import me.seravkin.replacer.domain.repositories.{Caching, ChatStateRepository, ReplacerRepository, UserRepository}
 import me.seravkin.replacer.infrastructure._
+import me.seravkin.tg.adapter.events._
+import me.seravkin.tg.adapter.requests._
+import me.seravkin.tg.adapter.matching._
 
 /**
   * Bot that give a list of substitutes to given word in inline query
@@ -34,18 +37,18 @@ final class ReplacerBot[F[_]: Monad](replacer: ReplacerRepository[F] with Cachin
       sender(answer)
     case ReceiveMessage(message @ IsNotPrivate(_)) =>
       sender(SendMessage(message.chat.id, "Бот доступен только в личных беседах"))
-    case ReceiveMessage(message @ HasText("/start")) =>
+    case ReceiveMessage(message @ ContainsText("/start")) =>
       sender(SendMessage(message.chat.id, "Аутентифицированные пользователи могут задать боту новые переводы"))
     case ReceiveMessage(msg) =>
       authenticate(msg)(commands)
   }
 
   private[this] def commands(user: AuthorizedUser, botState: ReplacerBotState, message: Message): F[Unit] = (botState, message) match {
-    case (_, HasText("/exit")) =>
+    case (_, ContainsText("/exit")) =>
       chatStateRepository.set(message.chat.id, Nop) >>
       sender(SendMessage(message.chat.id, "Действие отменено"))
 
-    case (Nop, HasText("/help")) =>
+    case (Nop, ContainsText("/help")) =>
       sender(SendMessage(message.chat.id,
         """
           |/add - добавить новый перевод
@@ -54,7 +57,7 @@ final class ReplacerBot[F[_]: Monad](replacer: ReplacerRepository[F] with Cachin
           |/all - показать все переводы
           |/exit - выйти из текущей команды
         """.stripMargin))
-    case (Nop, HasText("/all")) =>
+    case (Nop, ContainsText("/all")) =>
       val values = !Monadic(replacer.all())
 
       val text = values
@@ -63,29 +66,29 @@ final class ReplacerBot[F[_]: Monad](replacer: ReplacerRepository[F] with Cachin
 
       sender(SendMessage(message.chat.id, text))
 
-    case (Nop, HasText("/add")) =>
+    case (Nop, ContainsText("/add")) =>
       chatStateRepository.set(message.chat.id, WaitingForKeyToAdd) >>
       sender(SendMessage(message.chat.id, "Введите ключ для поиска"))
 
-    case (WaitingForKeyToAdd, HasText(key)) =>
+    case (WaitingForKeyToAdd, ContainsText(key)) =>
       chatStateRepository.set(message.chat.id, WaitingForValue(key)) >>
       sender(SendMessage(message.chat.id, "Введите значение"))
 
-    case (WaitingForValue(key), HasText(value)) =>
+    case (WaitingForValue(key), ContainsText(value)) =>
       replacer.add(key -> value, user) >>
       chatStateRepository.set(message.chat.id, Nop) >>
       sender(SendMessage(message.chat.id, "Ключ и значение добавлены"))
 
-    case (Nop, HasText("/remove")) =>
+    case (Nop, ContainsText("/remove")) =>
       chatStateRepository.set(message.chat.id, WaitingForKeyToDelete) >>
       sender(SendMessage(message.chat.id, "Введите ключ для удаления"))
 
-    case (WaitingForKeyToDelete, HasText(key)) =>
+    case (WaitingForKeyToDelete, ContainsText(key)) =>
       replacer.remove(key) >>
       chatStateRepository.set(message.chat.id, Nop) >>
       sender(SendMessage(message.chat.id, "Перевод удален"))
 
-    case (Nop, HasText("/update")) =>
+    case (Nop, ContainsText("/update")) =>
       replacer.updateCache() >>
       sender(SendMessage(message.chat.id, "Кэш обновлен"))
 
@@ -104,11 +107,6 @@ final class ReplacerBot[F[_]: Monad](replacer: ReplacerRepository[F] with Cachin
     } else {
       sender(SendMessage(message.chat.id, s"Пользователь с id: ${message.chat.id} не аутентифицирован"))
     }
-  }
-
-  private object HasText {
-    def unapply(arg: Message): Option[String] =
-      arg.text
   }
 
   private object IsNotPrivate {

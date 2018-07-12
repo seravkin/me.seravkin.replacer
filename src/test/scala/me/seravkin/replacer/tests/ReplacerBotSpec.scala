@@ -16,6 +16,7 @@ import me.seravkin.replacer.domain.AuthorizedUser
 import me.seravkin.replacer.infrastructure._
 import me.seravkin.replacer.persistance.memory.{MVarChatStateRepository, MVarReplacerRepository}
 import me.seravkin.replacer.tests.mocks.{MockReplacerRepository, MockRequestHandlerF, MockUserRepository}
+import me.seravkin.tg.adapter.events._
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent.ExecutionContext.Implicits.global
